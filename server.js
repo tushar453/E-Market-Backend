@@ -46,7 +46,7 @@ const sendverifymail = async(name , email ,user_id)=>{
       from:'tksharma230@gmail.com',
       to:email,
       subject:'For Verification mail',
-      html:'<p>hii '+name+' pleasae click here to <a href="http://localhost:4000/verify?id='+user_id+'">Verify</a>your mail </p> '
+      html:'<p>hii '+name+' pleasae click here to <a href="https://emarketbackendd.onrender.com/verify?id='+user_id+'">Verify</a>your mail </p> '
     }
 
     transporter.sendMail(mailoption,function(error,info){
