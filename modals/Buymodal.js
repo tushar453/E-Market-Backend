@@ -48,7 +48,7 @@ const buySchema =new mongoose.Schema({
         type:String,
     }
     ,
-    products :[]
+    item :[]
 
   
 

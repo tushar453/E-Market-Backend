@@ -20,6 +20,10 @@ const addressSchema =new mongoose.Schema({
         type  : Number,
     //    required : true
     },
+    locality : {
+        type  : String,
+    //    required : true
+    },
    
     userid : {
         type  : String,

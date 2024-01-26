@@ -24,7 +24,7 @@ const Cart = require("./modals/Cartmodal");
 const Wish = require("./modals/Wishlist");
 const Sells = require("./modals/Buymodal");
 const Address = require("./modals/Address");
-
+const newbuy = require("./modals/Productmodal");
 // const Sells = require("./modals/Buymodal");
 const nodemailer = require("nodemailer");
 app.set('view engine', 'ejs');
@@ -124,6 +124,37 @@ message:'This Email is Already in use,try sign-in',
     } else {
       return resp.status(400).json({ message: "login failed" });
     }
+  });
+
+
+
+  app.post("/savefrombag", async (req, resp) => {
+    // let newuser  = User(req.body);
+    // let result =await newuser.save();
+  
+    // resp.send(result);
+  
+    const { productid } = req.body;
+    
+    const product = await Cart.findOne({_id:new mongodb.ObjectId(productid)});
+    // const product = await Cart.findOne({ productid : productid});
+
+
+    const newwish= new Wish({
+      name: product.name,
+      price:product.price,
+      productid: product.productid,
+      userid : product.userid,
+      username : product.username,
+      stars:product.stars,
+      description:product.description,
+      imageurls:product.imageurls
+    });
+       
+    const addingwish = await newwish.save();
+    const deleted = await Cart.deleteOne({_id:new mongodb.ObjectId(productid)});
+    resp.send("Added to wish Succesfully");
+   
   });
    
   app.post("/createPhones", async (req, resp) => {
@@ -515,6 +546,7 @@ message:'This Email is Already in use,try sign-in',
       state,
       userid,
       zipcode,
+      locality,
       
     } = req.body;
   
@@ -526,7 +558,7 @@ message:'This Email is Already in use,try sign-in',
         state:state,
         zipcode:zipcode,
         userid:userid,
-       
+       locality:locality
       
       
       });
@@ -534,17 +566,6 @@ message:'This Email is Already in use,try sign-in',
       const addtoAddress = await newaddress.save();
       resp.send("New Address Added Successfully");
 
-
-
-
-
-
-
-
-
-
-
-    
   });
 
 
@@ -555,25 +576,97 @@ message:'This Email is Already in use,try sign-in',
     resp.send(addressdata);
   });
 
-  app.post("/getOrders", async (req, resp) => {
-    const userid = req.body.userid;
+
+
+
+
+  // app.post("/cancelorder" ,async(req ,resp)=>{
+  //   const{orderid} = req.body;
+  
+  // const orders = await newbuy.findOne({_id:orderid})
     
-    const orderdata = await Sells.find({ userid : userid});
-    resp.send(orderdata);
+  //  orders.status = 'cancelled';
+  //  console.log(bookingss);
+  // let result  = await orders.save();
+  
+
+  // resp.send("Order cancelled");
+  // });
+
+
+
+
+
+
+
+
+
+
+
+  app.get("/allUsers", async (req, resp) => {
+    let userssdata = await User.find();
+    resp.send(userssdata);
+    // console.log(bookingsdata);
+  });
+
+  app.get("/allOrders", async (req, resp) => {
+    let ordersdata = await Sells.find();
+    resp.send(ordersdata);
+    // console.log(bookingsdata);
+  });
+
+  
+
+  
+  app.delete("/deletecart" ,async(req,resp)=>{
+    const userid = req.body.userid;
+    const deleteResult = await Cart.deleteMany({ userid:userid });
+
+    
+    resp.send(deleteResult);
+   
+  
+  });
+  app.post('/orders', async (req, res) => {
+    try {
+      const {  bproduct,
+        name,
+        contactno,
+        address,
+        city,
+        state,
+        zipcode,
+        userid,
+        locality,
+        paymentdetail } = req.body;
+  
+      const newOrder = new newbuy({
+        name,
+        contactno,
+        userid,
+        state,
+        zipcode,
+        paymentdetail,
+        city,
+        locality,
+        address,
+        products:bproduct // Array of products or single product
+      });
+  
+      await newOrder.save();
+      await Cart.deleteMany({ userid: userid });
+      res.status(201).json({ message: 'Checkout completed successfully', orer: newOrder });
+      
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to process checkout' });
+    }
+    Cart.deleteMany({userid:req.body.userid});
   });
   
 
-
-
-  app.post("/cancelorder" ,async(req ,resp)=>{
-    const{orderid} = req.body;
-  
-  const orders = await Sells.findOne({_id:orderid})
+  app.post("/getOrder", async (req, resp) => {
+    const userid = req.body.userid;
     
-   orders.status = 'cancelled';
-  //  console.log(bookingss);
-  let result  = await orders.save();
-  
-
-  resp.send("Order cancelled");
+    const orderdata = await newbuy.find({ userid : userid});
+    resp.send(orderdata);
   });
